@@ -1,0 +1,1185 @@
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: CRATED BY: PAUL HIGGINS
+:: DATE     : 12/04/2013
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+mode con: cols=110 lines=30
+TITLE csv Stitcher
+@ECHO OFF 
+COLOR 9F
+
+@ECHO OFF
+
+SET home="%CD%"
+
+ECHO.
+ECHO			"	   ____________    __   _____ __  _ __       __             	"
+ECHO			"	  / ____/ ___/ |  / /  / ___// /_(_) /______/ /_  ___  _____	"
+ECHO			"	 / /    \__ \| | / /   \__ \/ __/ / __/ ___/ __ \/ _ \/ ___/	"
+ECHO			"	/ /___ ___/ /| |/ /   ___/ / /_/ / /_/ /__/ / / /  __/ /    	"
+ECHO			"	\____//____/ |___/   /____/\__/_/\__/\___/_/ /_/\___/_/     	"
+ECHO.
+ECHO.
+ECHO.
+
+:folderCheck
+IF NOT EXIST %home%\rawFiles\NUL GOTO MENU
+
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+REM MENU http://community.spiceworks.com/scripts/show_download/362
+
+:MENU
+CLS
+mode con: cols=110 lines=30
+
+ECHO.
+ECHO			"	   ____________    __   _____ __  _ __       __             	"
+ECHO			"	  / ____/ ___/ |  / /  / ___// /_(_) /______/ /_  ___  _____	"
+ECHO			"	 / /    \__ \| | / /   \__ \/ __/ / __/ ___/ __ \/ _ \/ ___/	"
+ECHO			"	/ /___ ___/ /| |/ /   ___/ / /_/ / /_/ /__/ / / /  __/ /    	"
+ECHO			"	\____//____/ |___/   /____/\__/_/\__/\___/_/ /_/\___/_/     	"
+ECHO.
+ECHO.
+ECHO				   ====================== MENU NAME ======================
+ECHO					   PLEASE CHOOSE A NUMBER AND HIT ENTER
+ECHO				   -------------------------------------------------------
+ECHO				   1.  CREATE FILE LISTING
+ECHO				   2.  CONVERT EXCEL WORKBOOK/S SHEETS INTO CSV FILES 
+ECHO				   3.  MERGE A WORKBOOK/S SHEETS INTO A SINGLE CSV FILE/S
+ECHO				   4.  MERGE CORRESPONDING SHEETS OF ALL WORKBOOKS
+ECHO				   5.  MERGE ALL CSV FILES
+ECHO				   -------------------------------------------------------
+ECHO				   6.  HELP
+ECHO				   -------------------------------------------------------
+ECHO				   ===================PRESS 'Q' TO QUIT===================
+ECHO.
+ECHO.
+SET INPUT=
+SET /P INPUT=Please select a number:
+
+IF /I '%INPUT%'=='1' GOTO Selection1
+IF /I '%INPUT%'=='2' GOTO Selection2
+IF /I '%INPUT%'=='3' GOTO Selection3
+IF /I '%INPUT%'=='4' GOTO Selection4
+IF /I '%INPUT%'=='5' GOTO Selection5
+IF /I '%INPUT%'=='6' GOTO Selection6
+IF /I '%INPUT%'=='Q' GOTO Quit
+
+CLS
+
+ECHO.
+ECHO			"	   ____________    __   _____ __  _ __       __             	"
+ECHO			"	  / ____/ ___/ |  / /  / ___// /_(_) /______/ /_  ___  _____	"
+ECHO			"	 / /    \__ \| | / /   \__ \/ __/ / __/ ___/ __ \/ _ \/ ___/	"
+ECHO			"	/ /___ ___/ /| |/ /   ___/ / /_/ / /_/ /__/ / / /  __/ /    	"
+ECHO			"	\____//____/ |___/   /____/\__/_/\__/\___/_/ /_/\___/_/     	"
+ECHO.
+ECHO.
+ECHO				   ================== INVALID   ENTRY ====================
+ECHO				   -------------------------------------------------------
+ECHO					     Please select a number from the Main Menu
+ECHO					           [1-9] or select 'Q' to quit.
+ECHO				   -------------------------------------------------------
+ECHO				   ===============PRESS ANY KEY TO CONTINUE===============
+
+PAUSE > NUL
+GOTO MENU
+
+
+:Selection1
+
+@ECHO OFF
+
+@echo on>fileListingTemp.csv
+@ECHO OFF
+ECHO.>>fileListingTemp.csv
+ECHO.>>fileListingTemp.csv
+ECHO.>>fileListingTemp.csv
+ECHO THIS FILE LISTING WAS CREATED BY:     %USERNAME%>> fileListingTemp.csv
+ECHO.>> fileListingTemp.csv
+ECHO THIS LIST WAS CREATED ON THE:           %DATE%>> fileListingTemp.csv
+ECHO.>> fileListingTemp.csv
+for %%* in (.) do set CurrDirName=%%~n*
+ECHO THE FOLLOWING ARE THE FILE/S AND FOLDER/S CONTAINED IN THE FOLDER: "%CurrDirName%">> fileListingTemp.csv
+ECHO.>> fileListingTemp.csv
+
+
+@ECHO OFF
+setlocal enabledelayedexpansion
+set "parentfolder=%CD%"
+for /r . %%g in (*.*) do (
+  set "var=%%g"
+  set var=!var:%parentfolder%=!
+  echo !var! >> fileListingTemp.csv
+)
+
+@ECHO OFF
+SETLOCAL enabledelayedexpansion
+FOR /F "skip=1 tokens=1-6" %%A IN ('WMIC Path Win32_LocalTime Get Day^,Hour^,Minute^,Month^,Second^,Year /Format:table') DO (
+  SET /A FD=%%F*10000+%%D*100+%%A
+  SET /A FT=10000+%%B*100+%%C
+  SET FT=!FT:~-4!
+  SET "str1=fileListing"
+  SET "str2=!str1!_!FD!_!FT!"
+  @ECHO on > !str2!.csv
+ )
+
+@ECHO OFF
+find /v "\csv Stitcher.bat" < fileListingTemp.csv > fileListingTemp2.csv
+find /v "\fileListingTemp.csv" < fileListingTemp2.csv >> %str2%.csv
+del fileListingTemp2.csv
+del fileListingTemp.csv
+MD fileListing
+MOVE %home%\fileListing*.csv %home%\fileListing\ 
+
+
+GOTO Quit
+
+:Selection2
+
+
+REM EXCEL FILES CHECK
+
+IF EXIST *xls GOTO folderCheck2
+IF EXIST *xlsx GOTO folderCheck2
+
+IF NOT EXIST *xls GOTO NOEXCEL2
+IF NOT EXIST *xlsx GOTO NOEXCEL2
+
+:NOEXCEL2
+ECHO.
+ECHO   *  THERE ARE NO EXCEL FILES IN THIS FOLDER
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+
+:folderCheck2
+IF NOT EXIST %home%\rawFiles\NUL GOTO Selection2Start
+
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+
+:Selection2Start
+
+
+@ECHO OFF
+
+MD rawFiles
+ECHO.
+ECHO COPYING FILES TO BACKUP FOLDER RAW FILES
+ECHO PLEASE WAIT . . . 
+ECHO.
+COPY %home%\* %home%\rawFiles
+
+PUSHD rawFiles
+DEL *.bat
+POPD
+
+MD workFolder
+MOVE %home%\*.xls %home%\workFolder
+MOVE %home%\*xlsx %home%\workFolder
+CD %home%\workFolder
+SET work="%CD%"
+
+
+REM This script was created by Endoro 
+REM http://stackoverflow.com/questions/15911727/how-to-overcome-ascii-sort-order-with-regard-to-file-names-when-using-batch-scri?noredirect=1#comment22665960_15911727	
+REM This script adds leading zero's to the file name. Set the length of the file names as the number of zeros in the %pre% variable.	
+REM File names with a greater length will not be processed. If a file name alredy exists, an error occurs. Look at the output and remove the echo command before ren if it is OK.	
+
+@echo off&setlocal
+
+set "pre=00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" &rem max filename length-1
+
+for /f "delims=:" %%i in ('^(@echo(%pre%^&@echo(^)^|findstr /o $') do set /a MinNameLength=%%i-3
+for %%i in (*) do (
+    set "fname=%%~ni"
+    setlocal enabledelayedexpansion
+    for /f "delims=:" %%i in ('^(@echo(!fname!^&@echo(^)^|findstr /o $') do set /a fnamelen=%%i-3
+    if !fnamelen! lss %MinNameLength% (
+        set "fname=%pre%!fname!
+        set "fname=!fname:~-%MinNameLength%!
+        Ren "%%~fi" "!fname!%%~xi"
+    ) else (
+    echo file name too long: %%~nxi
+    )
+    endlocal
+)
+endlocal
+
+REM The following Jscript file created by csv Stitcher is a reproduction of the Jscript code written by Christopher West @ http://cwestblog.com/
+REM Christopher's code cycles through each excel file in a directory, opening each file and saving each worksheet as a csv file
+REM Thanks Christoper!
+
+@ECHO OFF
+ECHO	"AA	/*	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 jPaq - A fully customizable JavaScript/JScript library	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Copyright (c) 2011 Christopher West	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Licensed under the MIT license.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/license/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Version: 1.0.6.000001	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Revised: April 6, 2011	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	*/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	(function(){jPaq={toString:function(){return"jPaq - A fully customizable JavaScript/JScript library created by Christopher West."}};var e=new ActiveXObject("WScript.Shell");alert=function(a,b,c,d){a==null&&(a="");if(^!b)b=WScript.ScriptName;c==null&&(c=alert.OKOnly+alert.Exclamation);d==null&&(d=0);return e.Popup(a,d,b,c)};alert.OKOnly=0;alert.OKCancel=1;alert.AbortRetryIgnore=2;alert.YesNoCancel=3;alert.YesNo=4;alert.RetryCancel=5;alert.Critical=16;alert.Question=32;alert.Exclamation=48;alert.Information=	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	64;alert.Timeout=-1;alert.OK=1;alert.Cancel=2;alert.Abort=3;alert.Retry=4;alert.Ignore=5;alert.Yes=6;alert.No=7})();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	/***** END OF JPAQ *****/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	try {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Create an instance of Excel, but don't allow the content	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // area to be repainted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlCSV = 6;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlApp = new ActiveXObject("Excel.Application");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Visible = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Initialize the counts.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fileCount = 0, csvCount = 0, Wnumber = 10001;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Regular expression for match Excel files to be converted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var re = /([^\\\/]+)\.xlsx?$/i;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Reference the containing folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fso = new ActiveXObject("Scripting.FileSystemObject");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fldr = fso.GetFolder(WScript.ScriptFullName.replace(/[\\\/][^\\\/]+$/, ""));	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Determine whether or not linefeed characters should be removed.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "Would you like to remove linefeed characters from all cells?";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Remove Linefeed Characters";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var removeLf = alert.Yes == alert(msg, title, alert.YesNo + alert.Question);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Loop through all of the xls and xlsx files in this folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  for(var e = new Enumerator(fldr.Files); ^!e.atEnd(); e.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    var aFile = e.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    if(re.test(aFile.Name)) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      xlApp.StatusBar = "Processing " + aFile.Path + "...";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Open the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      var wb = xlApp.Workbooks.Open(aFile.Path);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Save each worksheet as a CSV file.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA			var Snumber = 10000;		"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      for(var e2 = new Enumerator(wb.Sheets); ^!e2.atEnd(); e2.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        var ws = e2.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        if(removeLf) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          ws.UsedRange.Replace("\n", "");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        }	"AA	>> convertExcelTemp1.txt	
+ECHO	"AA	        var csvPath = aFile.Path.replace(re, function($0, $1) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        Snumber = Snumber+1;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          return "Workbook" + Wnumber + "-" + "Sheet" + Snumber + ".csv";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        });	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        ws.SaveAs(csvPath, xlCSV);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        csvCount++;  // Increment the number of CSV's.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Close the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      wb.Close();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Increment the number of files.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA		  Wnumber = Wnumber+1;  "AA >> convertExcelTemp1.txt
+ECHO	"AA	      fileCount++;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Allow alerts to be displayed, and the screen to be updated again.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Close Excel.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The results are as follows:\nFiles converted:  "	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + fileCount + "\nCSV's created:  " + csvCount;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Conversion Process Complete";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Information);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	catch(e) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If the Excel workbook is open, close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{ wb.Close(false); }catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If Excel is open, change the settings back to normal and close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  } catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Print the error message.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The following error caused this script to fail:\n"	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + e.message;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Critical Error Occurred";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Critical);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+
+REM CLEAN JSCRIPT
+
+@echo off
+setlocal enabledelayedexpansion
+FOR /F "usebackq delims=" %%G IN ("convertExcelTemp1.txt") DO (
+  Set "line=%%G" & echo !line:"AA=!
+)>>"ExcelToCSV.js"
+
+ECHO.
+ECHO CHOOSE WHETHER OR NOT TO REMOVE LINEFEED CHARACTERS 
+ECHO.
+ECHO CONVERTING EXCEL FILES TO CSV MAY TAKE A FEW MINUTES 
+ECHO.
+ECHO DEPENDENT ON THE NUMBER OF FILES AND FILE SIZE
+
+
+@ECHO OFF
+CALL ExcelToCSV.js
+
+
+DEL convertExcelTemp1.txt
+DEL ExcelToCSV.js
+DEL *.xls
+DEL *.xlsx
+
+
+REM GATHER
+
+
+@echo off
+for /f "tokens=1,2 delims=-" %%a in ('dir /b /s %work%') do (
+IF NOT EXIST "%%a" mkdir "%%a"
+move "%%a-*" "%%a\"
+)
+
+GOTO QUIT
+
+
+
+:Selection3
+
+
+REM EXCEL FILES CHECK
+
+IF EXIST *xls GOTO folderCheck3
+IF EXIST *xlsx GOTO folderCheck3
+
+IF NOT EXIST *xls GOTO NOEXCEL3
+IF NOT EXIST *xlsx GOTO NOEXCEL3
+
+:NOEXCEL3
+ECHO.
+ECHO   *  THERE ARE NO EXCEL FILES IN THIS FOLDER
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+
+:folderCheck3
+IF NOT EXIST %home%\rawFiles\NUL GOTO Selection3Start
+
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+:Selection3Start
+
+@ECHO OFF
+
+MD rawFiles
+ECHO.
+ECHO COPYING FILES TO BACKUP FOLDER RAW FILES
+ECHO PLEASE WAIT . . . 
+ECHO.
+COPY %home%\* %home%\rawFiles
+
+PUSHD rawFiles
+DEL *.bat
+POPD
+
+MD workFolder
+MOVE %home%\*.xls %home%\workFolder
+MOVE %home%\*xlsx %home%\workFolder
+CD %home%\workFolder
+SET work="%CD%"
+
+REM This script was created by Endoro 
+REM http://stackoverflow.com/questions/15911727/how-to-overcome-ascii-sort-order-with-regard-to-file-names-when-using-batch-scri?noredirect=1#comment22665960_15911727	
+REM This script adds leading zero's to the file name. Set the length of the file names as the number of zeros in the %pre% variable.	
+REM File names with a greater length will not be processed. If a file name alredy exists, an error occurs. Look at the output and remove the echo command before ren if it is OK.	
+
+@echo off&setlocal
+
+set "pre=00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" &rem max filename length-1
+
+for /f "delims=:" %%i in ('^(@echo(%pre%^&@echo(^)^|findstr /o $') do set /a MinNameLength=%%i-3
+for %%i in (*) do (
+    set "fname=%%~ni"
+    setlocal enabledelayedexpansion
+    for /f "delims=:" %%i in ('^(@echo(!fname!^&@echo(^)^|findstr /o $') do set /a fnamelen=%%i-3
+    if !fnamelen! lss %MinNameLength% (
+        set "fname=%pre%!fname!
+        set "fname=!fname:~-%MinNameLength%!
+        Ren "%%~fi" "!fname!%%~xi"
+    ) else (
+    echo file name too long: %%~nxi
+    )
+    endlocal
+)
+endlocal
+
+
+@ECHO OFF
+ECHO	"AA	/*	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 jPaq - A fully customizable JavaScript/JScript library	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Copyright (c) 2011 Christopher West	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Licensed under the MIT license.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/license/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Version: 1.0.6.000001	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Revised: April 6, 2011	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	*/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	(function(){jPaq={toString:function(){return"jPaq - A fully customizable JavaScript/JScript library created by Christopher West."}};var e=new ActiveXObject("WScript.Shell");alert=function(a,b,c,d){a==null&&(a="");if(^!b)b=WScript.ScriptName;c==null&&(c=alert.OKOnly+alert.Exclamation);d==null&&(d=0);return e.Popup(a,d,b,c)};alert.OKOnly=0;alert.OKCancel=1;alert.AbortRetryIgnore=2;alert.YesNoCancel=3;alert.YesNo=4;alert.RetryCancel=5;alert.Critical=16;alert.Question=32;alert.Exclamation=48;alert.Information=	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	64;alert.Timeout=-1;alert.OK=1;alert.Cancel=2;alert.Abort=3;alert.Retry=4;alert.Ignore=5;alert.Yes=6;alert.No=7})();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	/***** END OF JPAQ *****/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	try {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Create an instance of Excel, but don't allow the content	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // area to be repainted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlCSV = 6;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlApp = new ActiveXObject("Excel.Application");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Visible = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Initialize the counts.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fileCount = 0, csvCount = 0, Wnumber = 10001;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Regular expression for match Excel files to be converted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var re = /([^\\\/]+)\.xlsx?$/i;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Reference the containing folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fso = new ActiveXObject("Scripting.FileSystemObject");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fldr = fso.GetFolder(WScript.ScriptFullName.replace(/[\\\/][^\\\/]+$/, ""));	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Determine whether or not linefeed characters should be removed.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "Would you like to remove linefeed characters from all cells?";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Remove Linefeed Characters";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var removeLf = alert.Yes == alert(msg, title, alert.YesNo + alert.Question);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Loop through all of the xls and xlsx files in this folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  for(var e = new Enumerator(fldr.Files); ^!e.atEnd(); e.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    var aFile = e.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    if(re.test(aFile.Name)) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      xlApp.StatusBar = "Processing " + aFile.Path + "...";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Open the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      var wb = xlApp.Workbooks.Open(aFile.Path);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Save each worksheet as a CSV file.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA			var Snumber = 10000;		"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      for(var e2 = new Enumerator(wb.Sheets); ^!e2.atEnd(); e2.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        var ws = e2.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        if(removeLf) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          ws.UsedRange.Replace("\n", "");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        }	"AA	>> convertExcelTemp1.txt	
+ECHO	"AA	        var csvPath = aFile.Path.replace(re, function($0, $1) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        Snumber = Snumber+1;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          return "Workbook" + Wnumber + "-" + "Sheet" + Snumber + ".csv";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        });	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        ws.SaveAs(csvPath, xlCSV);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        csvCount++;  // Increment the number of CSV's.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Close the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      wb.Close();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Increment the number of files.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA		  Wnumber = Wnumber+1;  "AA >> convertExcelTemp1.txt
+ECHO	"AA	      fileCount++;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Allow alerts to be displayed, and the screen to be updated again.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Close Excel.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The results are as follows:\nFiles converted:  "	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + fileCount + "\nCSV's created:  " + csvCount;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Conversion Process Complete";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Information);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	catch(e) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If the Excel workbook is open, close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{ wb.Close(false); }catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If Excel is open, change the settings back to normal and close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  } catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Print the error message.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The following error caused this script to fail:\n"	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + e.message;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Critical Error Occurred";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Critical);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+
+
+REM CLEAN JSCRIPT
+
+@echo off
+setlocal enabledelayedexpansion
+FOR /F "usebackq delims=" %%G IN ("convertExcelTemp1.txt") DO (
+  Set "line=%%G" & echo !line:"AA=!
+)>>"ExcelToCSV.js"
+
+
+ECHO.
+ECHO CHOOSE WHETHER OR NOT TO REMOVE LINEFEED CHARACTERS 
+ECHO.
+ECHO CONVERTING EXCEL FILES TO CSV MAY TAKE A FEW MINUTES 
+ECHO.
+ECHO DEPENDENT ON THE NUMBER OF FILES AND FILE SIZE
+
+
+CALL ExcelToCSV.js
+
+
+ECHO CONVERTING EXCEL FILES TO CSV
+ECHO PLEASE WAIT . . .
+
+DEL convertExcelTemp1.txt
+DEL ExcelToCSV.js
+DEL *.xls
+DEL *.xlsx
+
+
+REM GATHER
+
+
+@echo off
+for /f "tokens=1,2 delims=-" %%a in ('dir /b /s %work%') do (
+IF NOT EXIST "%%a" mkdir "%%a"
+move "%%a-*" "%%a\"
+)
+
+
+REM CREATE MERGE BAT
+
+@echo off
+ECHO COPY *.csv mergedFile.csv >> merge.bat
+
+
+
+REM DISTRIBUTE
+
+@echo off
+for /r %work% %%f in (.) do (
+  copy %work%\merge.bat "%%~ff" > nul
+)
+
+
+DEL merge.bat
+
+REM EXECUTE
+
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	call merge.bat 
+	popd 
+)
+
+REM DELETE MERGE.BAT
+
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	DEL merge.bat 
+	popd 
+)
+
+REM RENAME MERGEDFILE
+
+@echo off
+Setlocal enableDelayedExpansion
+
+for /d %%a in (*) do ( 
+	pushd %%a 
+	FOR %%* IN (.) DO (
+	SET dirName=%%~n*
+	SET "str1=mergedFile"
+	SET "str2=!str1!!dirName!
+	REN mergedFile.csv !str2!.csv
+	)
+	popd 
+)
+endlocal
+
+
+REM CYCLE THROUGH SUB FOLDERS MOVE FILES TO MERGED FOLDER
+REM http://stackoverflow.com/questions/14089371/dos-batch-file-to-copy-certain-file-types-from-subdirectories-to-one-folder-with
+
+CD %home%
+MD mergedFiles
+CD %work%
+
+@echo off
+setlocal disableDelayedExpansion
+set src=%work%
+set dest=%home%\mergedFiles
+for /r %src% %%F in (*.*) do (
+  if exist %dest%\%%~nxF (call :copyDup "%%F") else copy "%%F" %dest% >nul
+)
+GOTO CLEANUP
+
+:copyDup
+set /a cnt=1
+:loop
+set /a cnt+=1
+if exist "%dest%\%~n1(%cnt%)%~x1" goto :loop
+copy %1 "%dest%\%~n1(%cnt%)%~x1" >nul
+EXIT /B
+
+
+
+:CLEANUP
+@ECHO OFF
+CD %home%
+CD %home%\mergedFiles
+	DEL *.bat
+	DEL *.xls
+	DEL *.xlsx
+	REM THE FOLLOWING LINE REMOVES FILES CONTAINING A HYPHEN 
+	DEL *-*.*
+
+CD %work%
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	DEL mergedFileWork*.csv 
+	popd 
+)
+
+GOTO Quit
+
+
+
+
+:Selection4
+
+
+
+REM EXCEL FILES CHECK
+
+IF EXIST *xls GOTO folderCheck4
+IF EXIST *xlsx GOTO folderCheck4
+
+IF NOT EXIST *xls GOTO NOEXCEL4
+IF NOT EXIST *xlsx GOTO NOEXCEL4
+
+:NOEXCEL4
+ECHO.
+ECHO   *  THERE ARE NO EXCEL FILES IN THIS FOLDER
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+
+:folderCheck4
+IF NOT EXIST %home%\rawFiles\NUL GOTO Selection4Start
+
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE EXCEL FILES YOU WANT TO CONVERT\MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+
+
+:Selection4Start
+
+
+
+@ECHO OFF
+MD rawFiles
+ECHO.
+ECHO COPYING FILES TO BACKUP FOLDER RAW FILES
+ECHO PLEASE WAIT . . . 
+ECHO.
+COPY %home%\* %home%\rawFiles
+
+PUSHD rawFiles
+DEL *.bat
+POPD
+
+MD workFolder
+MOVE %home%\*.xls %home%\workFolder
+MOVE %home%\*xlsx %home%\workFolder
+CD %home%\workFolder
+SET work="%CD%"
+
+
+REM This script was created by Endoro 
+REM http://stackoverflow.com/questions/15911727/how-to-overcome-ascii-sort-order-with-regard-to-file-names-when-using-batch-scri?noredirect=1#comment22665960_15911727	
+REM This script adds leading zero's to the file name. Set the length of the file names as the number of zeros in the %pre% variable.	
+REM File names with a greater length will not be processed. If a file name alredy exists, an error occurs. Look at the output and remove the echo command before ren if it is OK.	
+
+@echo off&setlocal
+
+set "pre=00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" &rem max filename length-1
+
+for /f "delims=:" %%i in ('^(@echo(%pre%^&@echo(^)^|findstr /o $') do set /a MinNameLength=%%i-3
+for %%i in (*) do (
+    set "fname=%%~ni"
+    setlocal enabledelayedexpansion
+    for /f "delims=:" %%i in ('^(@echo(!fname!^&@echo(^)^|findstr /o $') do set /a fnamelen=%%i-3
+    if !fnamelen! lss %MinNameLength% (
+        set "fname=%pre%!fname!
+        set "fname=!fname:~-%MinNameLength%!
+        Ren "%%~fi" "!fname!%%~xi"
+    ) else (
+    echo file name too long: %%~nxi
+    )
+    endlocal
+)
+endlocal
+
+
+@ECHO OFF
+ECHO	"AA	/*	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 jPaq - A fully customizable JavaScript/JScript library	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Copyright (c) 2011 Christopher West	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Licensed under the MIT license.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 http://jpaq.org/license/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Version: 1.0.6.000001	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	 Revised: April 6, 2011	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	*/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	(function(){jPaq={toString:function(){return"jPaq - A fully customizable JavaScript/JScript library created by Christopher West."}};var e=new ActiveXObject("WScript.Shell");alert=function(a,b,c,d){a==null&&(a="");if(^!b)b=WScript.ScriptName;c==null&&(c=alert.OKOnly+alert.Exclamation);d==null&&(d=0);return e.Popup(a,d,b,c)};alert.OKOnly=0;alert.OKCancel=1;alert.AbortRetryIgnore=2;alert.YesNoCancel=3;alert.YesNo=4;alert.RetryCancel=5;alert.Critical=16;alert.Question=32;alert.Exclamation=48;alert.Information=	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	64;alert.Timeout=-1;alert.OK=1;alert.Cancel=2;alert.Abort=3;alert.Retry=4;alert.Ignore=5;alert.Yes=6;alert.No=7})();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	/***** END OF JPAQ *****/	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	try {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Create an instance of Excel, but don't allow the content	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // area to be repainted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlCSV = 6;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var xlApp = new ActiveXObject("Excel.Application");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Visible = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = false;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Initialize the counts.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fileCount = 0, csvCount = 0, Wnumber = 10001;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Regular expression for match Excel files to be converted.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var re = /([^\\\/]+)\.xlsx?$/i;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Reference the containing folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fso = new ActiveXObject("Scripting.FileSystemObject");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var fldr = fso.GetFolder(WScript.ScriptFullName.replace(/[\\\/][^\\\/]+$/, ""));	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Determine whether or not linefeed characters should be removed.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "Would you like to remove linefeed characters from all cells?";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Remove Linefeed Characters";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var removeLf = alert.Yes == alert(msg, title, alert.YesNo + alert.Question);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Loop through all of the xls and xlsx files in this folder.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  for(var e = new Enumerator(fldr.Files); ^!e.atEnd(); e.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    var aFile = e.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    if(re.test(aFile.Name)) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      xlApp.StatusBar = "Processing " + aFile.Path + "...";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Open the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      var wb = xlApp.Workbooks.Open(aFile.Path);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Save each worksheet as a CSV file.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA			var Snumber = 10000;		"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      for(var e2 = new Enumerator(wb.Sheets); ^!e2.atEnd(); e2.moveNext()) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        var ws = e2.item();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        if(removeLf) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          ws.UsedRange.Replace("\n", "");	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        }	"AA	>> convertExcelTemp1.txt	
+ECHO	"AA	        var csvPath = aFile.Path.replace(re, function($0, $1) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        Snumber = Snumber+1;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	          return "Sheet" + Snumber + "-" + "Workbook" + Wnumber  + ".csv";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        });	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        ws.SaveAs(csvPath, xlCSV);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	        csvCount++;  // Increment the number of CSV's.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Close the workbook.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      wb.Close();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	      // Increment the number of files.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA		  Wnumber = Wnumber+1;  "AA >> convertExcelTemp1.txt
+ECHO	"AA	      fileCount++;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  }	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Allow alerts to be displayed, and the screen to be updated again.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Close Excel.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The results are as follows:\nFiles converted:  "	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + fileCount + "\nCSV's created:  " + csvCount;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Conversion Process Complete";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Information);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	catch(e) {	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If the Excel workbook is open, close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{ wb.Close(false); }catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // If Excel is open, change the settings back to normal and close it.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  try{	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.DisplayAlerts = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.ScreenUpdating = true;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    xlApp.Quit();	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  } catch(e2){}	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  // Print the error message.	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var msg = "The following error caused this script to fail:\n"	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	    + e.message;	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  var title = "Critical Error Occurred";	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	  alert(msg, title, alert.Critical);	"AA	>> convertExcelTemp1.txt
+ECHO	"AA	}	"AA	>> convertExcelTemp1.txt
+
+REM CLEAN JSCRIPT
+
+@echo off
+setlocal enabledelayedexpansion
+FOR /F "usebackq delims=" %%G IN ("convertExcelTemp1.txt") DO (
+  Set "line=%%G" & echo !line:"AA=!
+)>>"ExcelToCSV.js"
+
+
+
+ECHO.
+ECHO CHOOSE WHETHER OR NOT TO REMOVE LINEFEED CHARACTERS 
+ECHO.
+ECHO CONVERTING EXCEL FILES TO CSV MAY TAKE A FEW MINUTES 
+ECHO.
+ECHO DEPENDENT ON THE NUMBER OF FILES AND FILE SIZE
+
+CALL ExcelToCSV.js
+
+
+ECHO CONVERTING EXCEL FILES TO CSV
+ECHO PLEASE WAIT . . .
+
+DEL convertExcelTemp1.txt
+DEL ExcelToCSV.js
+DEL *.xls
+DEL *.xlsx
+
+
+REM GATHER
+
+
+@echo off
+for /f "tokens=1,2 delims=-" %%a in ('dir /b /s %work%') do (
+IF NOT EXIST "%%a" mkdir "%%a"
+move "%%a-*" "%%a\"
+)
+
+
+
+REM CREATE MERGE BAT
+
+@echo off
+ECHO COPY *.csv mergedFile.csv >> merge.bat
+
+
+
+REM DISTRIBUTE
+
+@echo off
+for /r %work% %%f in (.) do (
+  copy %work%\merge.bat "%%~ff" > nul
+)
+
+
+DEL merge.bat
+
+REM EXECUTE
+
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	call merge.bat 
+	popd 
+)
+
+REM DELETE MERGE.BAT
+
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	DEL merge.bat 
+	popd 
+)
+
+REM RENAME MERGEDFILE
+
+@echo off
+Setlocal enableDelayedExpansion
+
+for /d %%a in (*) do ( 
+	pushd %%a 
+	FOR %%* IN (.) DO (
+	SET dirName=%%~n*
+	SET "str1=mergedFile"
+	SET "str2=!str1!!dirName!
+	REN mergedFile.csv !str2!.csv
+	)
+	popd 
+)
+endlocal
+
+
+REM CYCLE THROUGH SUB FOLDERS MOVE FILES TO MERGED FOLDER
+REM http://stackoverflow.com/questions/14089371/dos-batch-file-to-copy-certain-file-types-from-subdirectories-to-one-folder-with
+
+
+
+
+
+CD %home%
+MD mergedSheetFiles
+CD %work%
+
+
+
+@echo off
+setlocal disableDelayedExpansion
+set src=%work%
+set dest=%home%\mergedSheetFiles
+for /r %src% %%F in (*.*) do (
+  if exist %dest%\%%~nxF (call :copyDup "%%F") else copy "%%F" %dest% >nul
+)
+GOTO CLEANUP
+
+
+
+:copyDup
+set /a cnt=1
+:loop
+set /a cnt+=1
+if exist "%dest%\%~n1(%cnt%)%~x1" goto :loop
+copy %1 "%dest%\%~n1(%cnt%)%~x1" >nul
+EXIT /B
+
+
+
+:CLEANUP
+@ECHO OFF
+CD %home%
+CD %home%\mergedSheetFiles
+	DEL *.bat
+	DEL *.xls
+	DEL *.xlsx
+	REM THE FOLLOWING LINE REMOVES FILES CONTAINING A HYPHEN 
+	DEL *-*.*
+
+CD %work%
+@echo off
+for /d %%a in (*) do ( 
+	pushd %%a 
+	DEL mergedFileSheet*.csv 
+	popd 
+)
+
+GOTO Quit
+
+:Selection5
+
+
+IF EXIST *csv GOTO combineCSV
+
+IF NOT EXIST *csv GOTO csvWarning
+
+
+:csvWarning
+
+ECHO.
+ECHO   *  THERE ARE NO CSV FILES IN THIS FOLDER
+ECHO.
+ECHO   *  HAS THIS SCRIPT BEEN RUN BEFORE^?
+ECHO.
+ECHO   *  PLEASE CLEAR THE FOLDER OF EVERYTHING BUT THE CSV FILES YOU WANT TO MERGE AND TRY AGAIN.
+ECHO.
+ECHO.
+
+TIMEOUT /T 6
+
+
+GOTO END
+
+:combineCSV
+@ECHO OFF
+
+MD rawFiles
+ECHO.
+ECHO COPYING FILES TO BACKUP FOLDER RAW FILES
+ECHO PLEASE WAIT . . . 
+ECHO.
+COPY %home%\* %home%\rawFiles
+
+PUSHD rawFiles
+DEL *.bat
+POPD
+
+MD workFolder
+MOVE %home%\*.csv %home%\workFolder
+CD %home%\workFolder
+SET work="%CD%"
+
+REM This script was created by Endoro 
+REM http://stackoverflow.com/questions/15911727/how-to-overcome-ascii-sort-order-with-regard-to-file-names-when-using-batch-scri?noredirect=1#comment22665960_15911727	
+REM This script adds leading zero's to the file name. Set the length of the file names as the number of zeros in the %pre% variable.	
+REM File names with a greater length will not be processed. If a file name alredy exists, an error occurs. Look at the output and remove the echo command before ren if it is OK.	
+
+@echo off&setlocal
+
+set "pre=00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" &rem max filename length-1
+
+for /f "delims=:" %%i in ('^(@echo(%pre%^&@echo(^)^|findstr /o $') do set /a MinNameLength=%%i-3
+for %%i in (*) do (
+    set "fname=%%~ni"
+    setlocal enabledelayedexpansion
+    for /f "delims=:" %%i in ('^(@echo(!fname!^&@echo(^)^|findstr /o $') do set /a fnamelen=%%i-3
+    if !fnamelen! lss %MinNameLength% (
+        set "fname=%pre%!fname!
+        set "fname=!fname:~-%MinNameLength%!
+        Ren "%%~fi" "!fname!%%~xi"
+    ) else (
+    echo file name too long: %%~nxi
+    )
+    endlocal
+)
+endlocal
+
+COPY *.csv mergedFile.csv
+
+MOVE %work%\mergedFile.csv %home%\
+
+CD %home%
+
+rmdir /s /q workFolder
+
+GOTO Quit
+
+
+:Selection6
+
+mode con: cols=160 lines=45
+ECHO.	
+ECHO.	
+ECHO		HOW TO USE CSV STITCHER
+ECHO.		
+ECHO		Copy and paste the csv stitcher file into the folder containing the excel or csv files you wish to manipulate. 
+ECHO.
+ECHO		Then double click on the csv stitcher file and choose an option.
+ECHO.	
+ECHO		WHAT DOES CSV STITCHER DO?
+ECHO.	
+ECHO			OPTION 1:
+ECHO.	
+ECHO		A csv file will be created listing all files and folders within the parent folder.
+ECHO.	
+ECHO				CSV DEFINITION
+ECHO.
+ECHO		A comma-separated values (CSV) file stores tabular data (numbers and text) in plain-text form.
+ECHO		A CSV file consists of any number of records, separated by line breaks of some kind. 
+ECHO		Each record consists of fields, separated by some other character or string, most commonly a literal comma or tab. 
+ECHO.	
+ECHO			OPTION 2:
+ECHO.	
+ECHO		All excel workbooks in the containing folder will have each work sheet belonging to the workbook saved as a separate csv file.
+ECHO		These separate sheet csv files will then be saved in their corresponding workbook folder.  
+ECHO.	
+ECHO			OPTION 3:
+ECHO.	
+ECHO		All excel workbooks in the containing folder will have each work sheet belonging to the workbook saved as a separate csv file.
+ECHO		The sheets belonging to each workbook will then be merged to create a single file.
+ECHO		The file will be merged in the following order:
+ECHO		Sheet 1 will be followed by sheet 2, sheet 2 will be followed by sheet 3, sheet 3 will be followed by sheet 4 etc.
+ECHO.	
+ECHO			OPTION 4:
+ECHO.
+ECHO		All excel workbooks in the containing folder will have each work sheet belonging to the workbook saved as a separate csv file.
+ECHO		Each sheet csv file belonging to each workbook will then be merged with the corresponding sheet (based on sheet number) of the other workbook.
+ECHO.	
+ECHO			OPTION 5:
+ECHO.
+ECHO		All csv files within the folder will be merged as a single file named "mergedFile".
+ECHO.
+ECHO.
+ECHO 		PRESS ANY KEY TO CONTINUE
+
+PAUSE > NUL
+GOTO MENU
+
+
+
+
+:Quit
+CLS
+ECHO.
+ECHO			"	   ____________    __   _____ __  _ __       __             	"
+ECHO			"	  / ____/ ___/ |  / /  / ___// /_(_) /______/ /_  ___  _____	"
+ECHO			"	 / /    \__ \| | / /   \__ \/ __/ / __/ ___/ __ \/ _ \/ ___/	"
+ECHO			"	/ /___ ___/ /| |/ /   ___/ / /_/ / /_/ /__/ / / /  __/ /    	"
+ECHO			"	\____//____/ |___/   /____/\__/_/\__/\___/_/ /_/\___/_/     	"
+ECHO.
+ECHO.
+ECHO				   ================== PROGRAM  COMPLETE ==================
+ECHO.
+ECHO			    ######  ##  ##   ####   ##  ##  ##  ##          ##  ##   ####   ##  ## 
+ECHO			      ##    ##  ##  ##  ##  ### ##  ## ##            ####   ##  ##  ##  ## 
+ECHO			      ##    ######  ######  ## ###  ####              ##    ##  ##  ##  ## 
+ECHO			      ##    ##  ##  ##  ##  ##  ##  ## ##             ##    ##  ##  ##  ## 
+ECHO			      ##    ##  ##  ##  ##  ##  ##  ##  ##            ##     ####    ####  
+ECHO.
+ECHO				   ====================== THANK YOU =======================
+ECHO				   --------------------------------------------------------
+ECHO				   ================= PRESS ANY KEY TO QUIT ================
+
+PAUSE>NUL
+EXIT
+
+
+:END
+EXIT
+
+
